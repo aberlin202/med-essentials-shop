@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { z } from "zod";
-import { categories, products, type Category } from "@/data/products";
+import { useStore } from "@/context/StoreContext";
 import { ProductCard } from "@/components/site/ProductCard";
 
 const searchSchema = z.object({
-  category: z.enum(["Diagnostics", "Anatomy", "Apparel", "Stationery", "Surgical"]).optional(),
+  category: z.string().optional(),
 });
 
 export const Route = createFileRoute("/shop")({
@@ -23,8 +23,9 @@ type Sort = "featured" | "price-asc" | "price-desc" | "name";
 
 function ShopPage() {
   const { category } = Route.useSearch();
+  const { products, categories } = useStore();
   const [sort, setSort] = useState<Sort>("featured");
-  const [active, setActive] = useState<Category | undefined>(category);
+  const [active, setActive] = useState<string | undefined>(category);
 
   const filtered = useMemo(() => {
     let list = active ? products.filter((p) => p.category === active) : products;
@@ -64,7 +65,7 @@ function ShopPage() {
 
       <div className="mt-8 grid gap-10 md:grid-cols-[200px_1fr]">
         <aside>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground">Category</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-foreground">Category</h2>
           <ul className="mt-3 space-y-1">
             <li>
               <button
