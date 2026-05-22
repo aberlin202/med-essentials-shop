@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { products, type Product } from "@/data/products";
+import { useStore, type StoreProduct } from "@/context/StoreContext";
 
 interface CartItem {
   productId: string;
@@ -14,7 +14,7 @@ interface CartContextValue {
   clear: () => void;
   totalItems: number;
   subtotal: number;
-  detailed: { product: Product; quantity: number }[];
+  detailed: { product: StoreProduct; quantity: number }[];
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
@@ -22,6 +22,7 @@ const STORAGE_KEY = "medclub.cart.v1";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const { products } = useStore();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -42,7 +43,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const product = products.find((p) => p.id === i.productId);
         return product ? { product, quantity: i.quantity } : null;
       })
-      .filter(Boolean) as { product: Product; quantity: number }[];
+      .filter(Boolean) as { product: StoreProduct; quantity: number }[];
 
     return {
       items,
@@ -69,7 +70,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subtotal: detailed.reduce((s, d) => s + d.product.price * d.quantity, 0),
       detailed,
     };
-  }, [items]);
+  }, [items, products]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

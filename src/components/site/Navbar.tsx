@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, Menu, Heart } from "lucide-react";
+import { ShoppingBag, Menu, Heart, Shield } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 
 const nav = [
@@ -14,6 +15,7 @@ const nav = [
 export function Navbar() {
   const { totalItems } = useCart();
   const { count: wishCount } = useWishlist();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
   return (
@@ -42,6 +44,14 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Link
+            to={user ? "/admin" : "/admin/login"}
+            className="hidden h-9 items-center gap-1.5 rounded-md px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground sm:inline-flex"
+            aria-label="Admin"
+          >
+            <Shield className="h-4 w-4" />
+            <span>Admin</span>
+          </Link>
           <Link
             to="/wishlist"
             className="relative hidden h-9 items-center gap-2 rounded-md px-3 text-sm text-foreground hover:bg-accent sm:inline-flex"

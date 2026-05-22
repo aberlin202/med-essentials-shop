@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import type { Product } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import type { StoreProduct } from "@/context/StoreContext";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,7 +13,7 @@ const accentByCategory: Record<string, string> = {
   Surgical: "from-emerald-50 to-white",
 };
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product }: { product: StoreProduct }) {
   const { add } = useCart();
   const { has, toggle } = useWishlist();
   const wished = has(product.id);
@@ -43,15 +43,20 @@ export function ProductCard({ product }: { product: Product }) {
         >
           <Heart className={`h-4 w-4 ${wished ? "fill-primary text-primary" : ""}`} />
         </button>
-        <div className="text-center font-semibold tracking-tight text-foreground/70">
-          <div className="text-5xl">
-            {product.category === "Diagnostics" && "🩺"}
-            {product.category === "Anatomy" && "🦴"}
-            {product.category === "Apparel" && "🥼"}
-            {product.category === "Stationery" && "📓"}
-            {product.category === "Surgical" && "✂️"}
+        {product.imageUrl ? (
+          <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+        ) : (
+          <div className="text-center font-semibold tracking-tight text-foreground/70">
+            <div className="text-5xl">
+              {product.category === "Diagnostics" && "🩺"}
+              {product.category === "Anatomy" && "🦴"}
+              {product.category === "Apparel" && "🥼"}
+              {product.category === "Stationery" && "📓"}
+              {product.category === "Surgical" && "📦"}
+              {!["Diagnostics","Anatomy","Apparel","Stationery","Surgical"].includes(product.category) && "📦"}
+            </div>
           </div>
-        </div>
+        )}
       </Link>
       <div className="flex flex-1 flex-col p-5">
         <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
