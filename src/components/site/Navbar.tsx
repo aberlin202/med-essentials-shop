@@ -1,17 +1,20 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, Menu } from "lucide-react";
+import { ShoppingBag, Menu, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { useState } from "react";
 
 const nav = [
   { to: "/", label: "Home" },
   { to: "/shop", label: "Shop" },
+  { to: "/wishlist", label: "Wishlist" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
 export function Navbar() {
   const { totalItems } = useCart();
+  const { count: wishCount } = useWishlist();
   const [open, setOpen] = useState(false);
 
   return (
@@ -40,6 +43,18 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Link
+            to="/wishlist"
+            className="relative hidden h-9 items-center gap-2 rounded-md px-3 text-sm text-foreground hover:bg-accent sm:inline-flex"
+            aria-label="Wishlist"
+          >
+            <Heart className={`h-4 w-4 ${wishCount > 0 ? "fill-primary text-primary" : ""}`} />
+            {wishCount > 0 && (
+              <span className="ml-1 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">
+                {wishCount}
+              </span>
+            )}
+          </Link>
           <Link
             to="/cart"
             className="relative inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm text-foreground hover:bg-accent"
