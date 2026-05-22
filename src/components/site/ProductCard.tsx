@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import type { Product } from "@/data/products";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { Heart } from "lucide-react";
 import { toast } from "sonner";
 
 const accentByCategory: Record<string, string> = {
@@ -13,6 +15,8 @@ const accentByCategory: Record<string, string> = {
 
 export function ProductCard({ product }: { product: Product }) {
   const { add } = useCart();
+  const { has, toggle } = useWishlist();
+  const wished = has(product.id);
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/30 hover:shadow-[0_10px_30px_-15px_rgb(25_120_229/0.25)]">
@@ -28,6 +32,17 @@ export function ProductCard({ product }: { product: Product }) {
             {product.badge}
           </span>
         )}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            toggle(product.id);
+            toast.success(wished ? "Removed from wishlist" : "Added to wishlist");
+          }}
+          aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-background/90 text-foreground shadow-sm backdrop-blur transition-colors hover:text-primary"
+        >
+          <Heart className={`h-4 w-4 ${wished ? "fill-primary text-primary" : ""}`} />
+        </button>
         <div className="text-center font-semibold tracking-tight text-foreground/70">
           <div className="text-5xl">
             {product.category === "Diagnostics" && "🩺"}
