@@ -111,7 +111,7 @@ function Index() {
           </Link>
         </div>
         <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-5">
-          {categories.map((c) => (
+          {(categories as string[]).map((c) => (
             <Link
               key={c}
               to="/shop"
