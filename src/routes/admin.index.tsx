@@ -15,7 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useStore } from "@/context/StoreContext";
 import { db, storage } from "@/lib/firebase";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/admin/")({
   component: AdminPage,
   head: () => ({ meta: [{ title: "Admin — MedClub Store" }] }),
 });
