@@ -15,7 +15,14 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
-const NAV = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+};
+
+const NAV: NavItem[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { to: "/admin/products", label: "Products", icon: Package },
@@ -25,7 +32,7 @@ const NAV = [
   { to: "/admin/images", label: "Images", icon: ImageIcon },
   { to: "/admin/footer", label: "Footer", icon: PanelBottom },
   { to: "/admin/partners", label: "Partners", icon: Handshake },
-] as const;
+];
 
 export function AdminLayout({
   title,
@@ -69,7 +76,7 @@ export function AdminLayout({
               return (
                 <Link
                   key={item.to}
-                  to={item.to}
+                  to={item.to as any}
                   className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
                     active
                       ? "bg-primary text-primary-foreground"
@@ -106,7 +113,7 @@ export function AdminLayout({
               return (
                 <Link
                   key={item.to}
-                  to={item.to}
+                  to={item.to as any}
                   className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
                   <Icon className="h-4 w-4" />
