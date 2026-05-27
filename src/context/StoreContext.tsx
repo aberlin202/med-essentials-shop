@@ -23,6 +23,11 @@ export interface StatItem {
   value: string;
 }
 
+export interface FeatureItem {
+  title: string;
+  description: string;
+}
+
 export interface AboutContent {
   heading: string;
   intro: string;
@@ -38,6 +43,7 @@ export interface HomeContent {
   heroSubheadline: string;
   heroImageUrl?: string;
   stats: StatItem[];
+  features: FeatureItem[];
 }
 
 export interface SiteImages {
@@ -50,6 +56,7 @@ export interface Partner {
   name: string;
   logoUrl?: string;
   websiteUrl?: string;
+  description?: string;
 }
 
 export interface FooterContent {
@@ -86,6 +93,11 @@ const DEFAULT_HOME: HomeContent = {
     { label: "Members", value: "1,200+" },
     { label: "Products", value: "80+" },
     { label: "Avg. saving", value: "22%" },
+  ],
+  features: [
+    { title: "Free campus pickup", description: "Order online, pick up at the Student Union." },
+    { title: "Authentic & warrantied", description: "Sourced directly from manufacturers." },
+    { title: "Student pricing", description: "No markup — club covers the overhead." },
   ],
 };
 
@@ -208,6 +220,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               name: data.name ?? "Partner",
               logoUrl: data.logoUrl,
               websiteUrl: data.websiteUrl,
+              description: data.description,
             };
           })
         );

@@ -7,6 +7,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ImageInput } from "@/components/admin/ImageInput";
 import { StatsEditor } from "@/components/admin/StatsEditor";
 import { useStore, type HomeContent } from "@/context/StoreContext";
+import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/homepage")({
   component: HomepageAdminPage,
@@ -41,6 +42,41 @@ function HomepageAdminPage() {
           <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Stats</div>
           <div className="mt-2">
             <StatsEditor stats={draft.stats} onChange={(stats) => setDraft({ ...draft, stats })} />
+          </div>
+        </div>
+        <div>
+          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Feature highlights</div>
+          <p className="mt-1 text-xs text-muted-foreground">The three blocks below the hero (shipping, warranty, pricing, etc.)</p>
+          <div className="mt-2 space-y-2">
+            {draft.features.map((f, i) => {
+              const update = (patch: Partial<typeof f>) =>
+                setDraft({ ...draft, features: draft.features.map((x, idx) => (idx === i ? { ...x, ...patch } : x)) });
+              const remove = () => setDraft({ ...draft, features: draft.features.filter((_, idx) => idx !== i) });
+              const move = (dir: -1 | 1) => {
+                const j = i + dir;
+                if (j < 0 || j >= draft.features.length) return;
+                const next = [...draft.features];
+                [next[i], next[j]] = [next[j], next[i]];
+                setDraft({ ...draft, features: next });
+              };
+              return (
+                <div key={i} className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]">
+                  <input value={f.title} onChange={(e) => update({ title: e.target.value })} placeholder="Title"
+                    className="h-10 rounded-md border border-border bg-background px-3 text-sm" />
+                  <input value={f.description} onChange={(e) => update({ description: e.target.value })} placeholder="Description"
+                    className="h-10 rounded-md border border-border bg-background px-3 text-sm" />
+                  <div className="flex items-center gap-1">
+                    <button type="button" onClick={() => move(-1)} className="grid h-9 w-9 place-items-center rounded-md border border-border hover:bg-accent"><ArrowUp className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={() => move(1)} className="grid h-9 w-9 place-items-center rounded-md border border-border hover:bg-accent"><ArrowDown className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={remove} className="grid h-9 w-9 place-items-center rounded-md border border-border text-destructive hover:bg-accent"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </div>
+                </div>
+              );
+            })}
+            <button type="button" onClick={() => setDraft({ ...draft, features: [...draft.features, { title: "New", description: "" }] })}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border px-3 text-xs hover:bg-accent">
+              <Plus className="h-3.5 w-3.5" /> Add feature
+            </button>
           </div>
         </div>
         <button onClick={save} className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">
