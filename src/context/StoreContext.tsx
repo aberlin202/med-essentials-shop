@@ -50,6 +50,7 @@ export interface HomeContent {
 export interface SiteImages {
   logoUrl?: string;
   heroImageUrl?: string;
+  poweredByLogoUrl?: string;
 }
 
 export interface Partner {
@@ -102,7 +103,7 @@ const DEFAULT_HOME: HomeContent = {
   ],
 };
 
-const DEFAULT_SITE: SiteImages = { logoUrl: "", heroImageUrl: "" };
+const DEFAULT_SITE: SiteImages = { logoUrl: "", heroImageUrl: "", poweredByLogoUrl: "" };
 
 const DEFAULT_FOOTER: FooterContent = {
   tagline: "Equipment, books, and apparel — curated by med students, for med students.",
