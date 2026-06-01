@@ -15,6 +15,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { StoreProvider } from "@/context/StoreContext";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
+import { IntroOverlay } from "@/components/site/IntroOverlay";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -130,6 +131,7 @@ function RootComponent() {
                 </main>
                 <Footer />
               </div>
+              <IntroOverlay />
               <Toaster />
             </WishlistProvider>
           </CartProvider>
