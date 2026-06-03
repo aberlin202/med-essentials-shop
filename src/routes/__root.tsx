@@ -82,11 +82,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "MedClub Store — Essentials for Med School" },
       { name: "description", content: "Stethoscopes, atlases, white coats, and more — curated by the medical students' club." },
-      { property: "og:title", content: "MedClub Store" },
-      { property: "og:description", content: "Essential equipment for medical school students." },
+      { property: "og:title", content: "MedClub Store — Essentials for Med School" },
+      { property: "og:description", content: "Stethoscopes, atlases, white coats, and more — curated by the medical students' club." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "MedClub Store — Essentials for Med School" },
+      { name: "twitter:description", content: "Stethoscopes, atlases, white coats, and more — curated by the medical students' club." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/afa492ec-527f-4a8e-bbbc-972a78a3d53b/id-preview-f138225b--a8479402-3af9-4e74-b461-c0f0b1040986.lovable.app-1780511730155.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/afa492ec-527f-4a8e-bbbc-972a78a3d53b/id-preview-f138225b--a8479402-3af9-4e74-b461-c0f0b1040986.lovable.app-1780511730155.png" },
     ],
     links: [
       {
