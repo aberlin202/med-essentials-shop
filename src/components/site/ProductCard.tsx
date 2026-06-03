@@ -5,6 +5,7 @@ import { useStore, type StoreProduct } from "@/context/StoreContext";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/price";
+import { getImageUrl, getImageSrcSet } from "@/lib/getImageUrl";
 
 const accentByCategory: Record<string, string> = {
   Diagnostics: "from-sky-50 to-white",
@@ -47,12 +48,19 @@ export function ProductCard({ product, priority = false }: { product: StoreProdu
         </button>
         {product.imageUrl ? (
           <img
-            src={product.imageUrl}
+            src={getImageUrl(product.imageUrl, { w: 480 })}
+            srcSet={getImageSrcSet(product.imageUrl, [320, 480, 640])}
+            sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
             alt={product.name}
+            width={640}
+            height={480}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
             decoding="async"
             className="h-full w-full object-cover"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
           />
         ) : (
           <div className="text-center font-semibold tracking-tight text-foreground/70">
