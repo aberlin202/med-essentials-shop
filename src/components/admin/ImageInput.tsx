@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
 import { uploadImageFile } from "@/lib/uploadImage";
+import { getImageUrl, isLikelyImageUrl } from "@/lib/getImageUrl";
 
 export function ImageInput({
   value,
@@ -16,6 +17,7 @@ export function ImageInput({
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const invalid = value.trim().length > 0 && !isLikelyImageUrl(value.trim());
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -43,7 +45,9 @@ export function ImageInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Image URL"
-          className="h-10 rounded-md border border-border bg-background px-3 text-sm"
+          className={`h-10 rounded-md border bg-background px-3 text-sm ${
+            invalid ? "border-destructive" : "border-border"
+          }`}
         />
         <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-border px-3 text-sm hover:bg-accent">
           <Upload className="h-4 w-4" />
@@ -57,9 +61,14 @@ export function ImageInput({
           />
         </label>
       </div>
-      {value && (
+      {invalid && (
+        <p className="mt-1 text-xs text-destructive">
+          This doesn’t look like a direct image URL. Use a Firebase Storage link or a URL ending in .jpg/.png/.webp, or upload a file.
+        </p>
+      )}
+      {value && !invalid && (
         <img
-          src={value}
+          src={getImageUrl(value, { w: 192 })}
           alt=""
           className="mt-2 h-24 w-24 rounded-md border border-border object-cover"
         />
