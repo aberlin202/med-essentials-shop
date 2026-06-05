@@ -116,25 +116,26 @@ function ComparePage() {
     },
     {
       label: "",
-      render: (p) => (
-        <button
-          disabled={!!p.sizes?.length}
-          onClick={() => {
-            add(p.id, 1);
-            toast.success(`${p.name} added to cart`);
-          }}
-          className="inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          title={p.sizes?.length ? "Choose size on product page" : ""}
-        >
-          {p.sizes?.length ? (
-            <Link to="/product/$id" params={{ id: p.id }} className="text-primary-foreground">
-              Choose size
-            </Link>
-          ) : (
-            "Add to cart"
-          )}
-        </button>
-      ),
+      render: (p) =>
+        p.sizes?.length ? (
+          <Link
+            to="/product/$id"
+            params={{ id: p.id }}
+            className="inline-flex h-9 w-full items-center justify-center rounded-md border border-border bg-card px-3 text-xs font-medium hover:bg-accent"
+          >
+            Choose size
+          </Link>
+        ) : (
+          <button
+            onClick={() => {
+              add(p.id, 1);
+              toast.success(`${p.name} added to cart`);
+            }}
+            className="inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Add to cart
+          </button>
+        ),
     },
   ];
 
