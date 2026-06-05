@@ -6,7 +6,7 @@ import { Pencil, Plus, Trash2, Check, X } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ImageInput } from "@/components/admin/ImageInput";
-import { useStore, type CategoryDoc, type StoreProduct } from "@/context/StoreContext";
+import { useStore, type CategoryDoc, type StoreProduct, type ProductSize, YEAR_OPTIONS } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/price";
 
 export const Route = createFileRoute("/admin/products")({
@@ -24,6 +24,8 @@ type ProductForm = {
   badge: string;
   imageUrl: string;
   features: string[];
+  sizes: ProductSize[];
+  years: string[];
 };
 
 const empty = (firstCat: string): ProductForm => ({
@@ -36,6 +38,8 @@ const empty = (firstCat: string): ProductForm => ({
   badge: "",
   imageUrl: "",
   features: [],
+  sizes: [],
+  years: [],
 });
 
 function ProductsAdminPage() {
@@ -65,6 +69,10 @@ function ProductsAdminPage() {
         badge: form.badge.trim() || null,
         imageUrl: form.imageUrl.trim() || null,
         features: form.features.map((f) => f.trim()).filter(Boolean),
+        sizes: form.sizes
+          .map((s) => ({ label: s.label.trim(), stock: Number(s.stock) || 0, priceDelta: Number(s.priceDelta) || 0 }))
+          .filter((s) => s.label),
+        years: form.years,
       });
       setForm(empty(categoryDocs[0]?.name ?? ""));
       toast.success("Product added");
@@ -97,6 +105,8 @@ function ProductsAdminPage() {
       badge: p.badge ?? "",
       imageUrl: p.imageUrl ?? "",
       features: p.features ?? [],
+      sizes: p.sizes ?? [],
+      years: p.years ?? [],
     });
   }
 
@@ -113,6 +123,10 @@ function ProductsAdminPage() {
         badge: editForm.badge.trim() || null,
         imageUrl: editForm.imageUrl.trim() || null,
         features: editForm.features.map((f) => f.trim()).filter(Boolean),
+        sizes: editForm.sizes
+          .map((s) => ({ label: s.label.trim(), stock: Number(s.stock) || 0, priceDelta: Number(s.priceDelta) || 0 }))
+          .filter((s) => s.label),
+        years: editForm.years,
       });
       setEditingId(null);
       setEditForm(null);
