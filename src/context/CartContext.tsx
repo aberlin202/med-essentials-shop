@@ -43,7 +43,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       .map((i) => {
         const product = products.find((p) => p.id === i.productId);
         if (!product) return null;
-        const sizeInfo = i.size && product.sizes?.find((s) => s.label === i.size);
+        const sizeInfo = i.size ? product.sizes?.find((s) => s.label === i.size) : undefined;
         const unitPrice = product.price + (sizeInfo?.priceDelta ?? 0);
         return { product, quantity: i.quantity, size: i.size, unitPrice };
       })
