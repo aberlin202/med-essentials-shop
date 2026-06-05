@@ -21,8 +21,9 @@ function CartPage() {
   const { getCategoryEmoji } = useStore();
   const total = subtotal;
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [placedOrderNumber, setPlacedOrderNumber] = useState<string | null>(null);
 
-  if (detailed.length === 0) {
+  if (detailed.length === 0 && !placedOrderNumber) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-24 text-center">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-secondary">
@@ -42,13 +43,43 @@ function CartPage() {
     );
   }
 
+  if (placedOrderNumber) {
+    return (
+      <div className="mx-auto max-w-xl px-6 py-20 text-center">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-green-100 text-green-700">
+          ✓
+        </div>
+        <h1 className="mt-6 text-2xl font-semibold tracking-tight">Order placed!</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Your order number is <strong className="text-foreground">{placedOrderNumber}</strong>.
+          Save it to track your order.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <Link
+            to="/track"
+            search={{ order: placedOrderNumber }}
+            className="inline-flex h-10 items-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Track this order
+          </Link>
+          <Link
+            to="/shop"
+            className="inline-flex h-10 items-center rounded-md border border-border px-5 text-sm font-medium hover:bg-accent"
+          >
+            Continue shopping
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
       <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Your cart</h1>
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_360px]">
         <ul className="divide-y divide-border rounded-lg border border-border">
           {detailed.map(({ product, quantity }) => (
-            <li key={product.id} className="flex gap-4 p-5">
+            <li key={`${product.id}::${arguments}`} className="flex gap-4 p-5">
               <Link
                 to="/product/$id"
                 params={{ id: product.id }}
