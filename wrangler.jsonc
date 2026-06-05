@@ -3,5 +3,13 @@
   "name": "med-essentials-shop",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "src/server.ts",
+  // Nitro (cloudflare-module preset) emits the deployable Worker bundle to
+  // `.output/server/index.mjs` plus static assets under `.output/public`.
+  // Run `vite build` (which now triggers the Nitro deploy plugin because
+  // vite.config.ts sets `nitro: true`) before `wrangler deploy`.
+  "main": ".output/server/index.mjs",
+  "assets": {
+    "directory": ".output/public",
+    "binding": "ASSETS"
+  },
 }
