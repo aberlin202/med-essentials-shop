@@ -78,8 +78,8 @@ function CartPage() {
       <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Your cart</h1>
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_360px]">
         <ul className="divide-y divide-border rounded-lg border border-border">
-          {detailed.map(({ product, quantity }) => (
-            <li key={`${product.id}::${arguments}`} className="flex gap-4 p-5">
+          {detailed.map(({ product, quantity, size, unitPrice }) => (
+            <li key={`${product.id}::${size ?? ""}`} className="flex gap-4 p-5">
               <Link
                 to="/product/$id"
                 params={{ id: product.id }}
@@ -95,7 +95,7 @@ function CartPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                      {product.category}
+                      {product.category}{size ? ` · Size ${size}` : ""}
                     </div>
                     <Link
                       to="/product/$id"
@@ -106,7 +106,7 @@ function CartPage() {
                     </Link>
                   </div>
                   <button
-                    onClick={() => remove(product.id)}
+                    onClick={() => remove(product.id, size)}
                     className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
                     aria-label="Remove item"
                   >
@@ -116,7 +116,7 @@ function CartPage() {
                 <div className="mt-auto flex items-center justify-between pt-3">
                   <div className="inline-flex h-9 items-center rounded-md border border-border">
                     <button
-                      onClick={() => setQty(product.id, quantity - 1)}
+                      onClick={() => setQty(product.id, quantity - 1, size)}
                       className="grid h-full w-9 place-items-center text-muted-foreground hover:text-foreground"
                       aria-label="Decrease"
                     >
@@ -124,14 +124,14 @@ function CartPage() {
                     </button>
                     <span className="w-8 text-center text-sm">{quantity}</span>
                     <button
-                      onClick={() => setQty(product.id, quantity + 1)}
+                      onClick={() => setQty(product.id, quantity + 1, size)}
                       className="grid h-full w-9 place-items-center text-muted-foreground hover:text-foreground"
                       aria-label="Increase"
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  <div className="text-sm font-semibold">{formatPrice(product.price * quantity)}</div>
+                  <div className="text-sm font-semibold">{formatPrice(unitPrice * quantity)}</div>
                 </div>
               </div>
             </li>
@@ -174,16 +174,18 @@ function CartPage() {
       {checkoutOpen && (
         <CheckoutDialog
           total={total}
-          items={detailed.map(({ product, quantity }) => ({
+          items={detailed.map(({ product, quantity, size, unitPrice }) => ({
             productId: product.id,
             name: product.name,
-            price: product.price,
+            price: unitPrice,
             quantity,
+            size,
           }))}
           onClose={() => setCheckoutOpen(false)}
-          onSubmitted={() => {
+          onSubmitted={(orderNumber) => {
             clear();
             setCheckoutOpen(false);
+            setPlacedOrderNumber(orderNumber);
           }}
         />
       )}
@@ -234,9 +236,9 @@ function CheckoutDialog({
   onSubmitted,
 }: {
   total: number;
-  items: { productId: string; name: string; price: number; quantity: number }[];
+  items: { productId: string; name: string; price: number; quantity: number; size?: string }[];
   onClose: () => void;
-  onSubmitted: () => void;
+  onSubmitted: (orderNumber: string) => void;
 }) {
   const [form, setForm] = useState({
     fullName: "",
@@ -262,7 +264,9 @@ function CheckoutDialog({
     }
     setSubmitting(true);
     try {
+      const orderNumber = `MC-${Math.floor(1000 + Math.random() * 9000)}`;
       await addDoc(collection(db, "orders"), {
+        orderNumber,
         fullName: result.data.fullName,
         email: result.data.email,
         phone: result.data.phone,
@@ -274,8 +278,8 @@ function CheckoutDialog({
         createdAt: Date.now(),
         createdAtServer: serverTimestamp(),
       });
-      toast.success(`Thanks, ${result.data.fullName}! Your order was placed.`);
-      onSubmitted();
+      toast.success(`Thanks, ${result.data.fullName}! Order ${orderNumber} placed.`);
+      onSubmitted(orderNumber);
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to place order");
     } finally {
