@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Minus, Plus, ArrowLeft, Check, ZoomIn, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Minus, Plus, ArrowLeft, Check, ZoomIn, X, Star } from "lucide-react";
+import { addDoc, collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { useStore } from "@/context/StoreContext";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
@@ -27,6 +29,7 @@ function ProductPage() {
   const { add } = useCart();
   const [qty, setQty] = useState(1);
   const [zoomOpen, setZoomOpen] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
   if (!product) {
     return (
@@ -38,6 +41,12 @@ function ProductPage() {
       </div>
     );
   }
+
+  const hasSizes = !!product.sizes && product.sizes.length > 0;
+  const sizeInfo = hasSizes && selectedSize
+    ? product.sizes!.find((s) => s.label === selectedSize)
+    : null;
+  const effectivePrice = product.price + (sizeInfo?.priceDelta ?? 0);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -81,7 +90,7 @@ function ProductPage() {
             {product.category}
           </div>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl">{product.name}</h1>
-          <div className="mt-4 text-2xl font-semibold text-foreground">{formatPrice(product.price)}</div>
+          <div className="mt-4 text-2xl font-semibold text-foreground">{formatPrice(effectivePrice)}</div>
           <p className="mt-6 text-base text-muted-foreground">{product.description}</p>
 
           {product.features && product.features.length > 0 && (
@@ -93,6 +102,46 @@ function ProductPage() {
                 </li>
               ))}
             </ul>
+          )}
+
+          {hasSizes && (
+            <div className="mt-6">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Size {selectedSize ? `· ${selectedSize}` : ""}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {product.sizes!.map((s) => {
+                  const oos = (s.stock ?? 0) <= 0;
+                  const active = selectedSize === s.label;
+                  return (
+                    <button
+                      key={s.label}
+                      type="button"
+                      disabled={oos}
+                      onClick={() => setSelectedSize(s.label)}
+                      className={`min-w-[3rem] rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                        active
+                          ? "border-brand-red bg-brand-red text-white"
+                          : oos
+                          ? "border-border bg-muted text-muted-foreground line-through cursor-not-allowed opacity-60"
+                          : "border-border bg-background hover:border-brand-red"
+                      }`}
+                    >
+                      {s.label}
+                      {s.priceDelta ? (
+                        <span className="ml-1 text-[10px] opacity-80">
+                          {s.priceDelta > 0 ? "+" : ""}
+                          {s.priceDelta}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+              {!selectedSize && (
+                <p className="mt-2 text-xs text-muted-foreground">Select a size to continue.</p>
+              )}
+            </div>
           )}
 
           <div className="mt-8 flex items-center gap-3">
@@ -114,17 +163,20 @@ function ProductPage() {
               </button>
             </div>
             <button
+              disabled={hasSizes && !selectedSize}
               onClick={() => {
-                add(product.id, qty);
+                add(product.id, qty, selectedSize ?? undefined);
                 toast.success(`${qty} × ${product.name} added to cart`);
               }}
-              className="inline-flex h-11 flex-1 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="inline-flex h-11 flex-1 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Add to cart
+              {hasSizes && !selectedSize ? "Select a size" : "Add to cart"}
             </button>
           </div>
         </div>
       </div>
+
+      <ReviewsSection productId={product.id} />
 
       {zoomOpen && product.imageUrl && (
         <div
