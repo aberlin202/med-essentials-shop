@@ -203,3 +203,161 @@ function ProductPage() {
     </div>
   );
 }
+
+interface Review {
+  id: string;
+  productId: string;
+  rating: number;
+  comment: string;
+  name: string;
+  approved: boolean;
+  createdAt: number;
+}
+
+function maskName(name: string) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.`;
+}
+
+function ReviewsSection({ productId }: { productId: string }) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [showCount, setShowCount] = useState(5);
+  const [form, setForm] = useState({ rating: 0, comment: "", name: "" });
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, "reviews"),
+      where("productId", "==", productId),
+      where("approved", "==", true),
+    );
+    return onSnapshot(q, (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Review, "id">) }));
+      list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      setReviews(list);
+    });
+  }, [productId]);
+
+  const avg = useMemo(
+    () => (reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0),
+    [reviews],
+  );
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (form.rating < 1) return setError("Please select a star rating.");
+    if (form.comment.trim().length < 20) return setError("Comment must be at least 20 characters.");
+    if (form.name.trim().length < 2) return setError("Please enter your name.");
+    setSubmitting(true);
+    setError("");
+    try {
+      await addDoc(collection(db, "reviews"), {
+        productId,
+        rating: form.rating,
+        comment: form.comment.trim(),
+        name: form.name.trim(),
+        approved: false,
+        createdAt: Date.now(),
+      });
+      setForm({ rating: 0, comment: "", name: "" });
+      toast.success("Thanks! Your review is pending approval.");
+    } catch (err: any) {
+      setError(err?.message ?? "Failed to submit");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="mt-14 border-t border-border pt-10">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h2 className="text-xl font-semibold">Student Reviews</h2>
+        {reviews.length > 0 && (
+          <div className="text-sm text-muted-foreground">
+            <span className="text-amber-500">{"★".repeat(Math.round(avg))}</span>
+            <span className="text-muted">{"★".repeat(5 - Math.round(avg))}</span>{" "}
+            {avg.toFixed(1)} · {reviews.length} review{reviews.length === 1 ? "" : "s"}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
+        <div className="space-y-4">
+          {reviews.length === 0 && (
+            <p className="text-sm text-muted-foreground">No reviews yet. Be the first!</p>
+          )}
+          {reviews.slice(0, showCount).map((r) => (
+            <div key={r.id} className="rounded-lg border border-border bg-card p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-amber-500">{"★".repeat(r.rating)}</span>
+                  <span className="text-muted-foreground">{"★".repeat(5 - r.rating)}</span>
+                  <span className="font-medium">{maskName(r.name)}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(r.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+              <p className="mt-2 text-sm">{r.comment}</p>
+            </div>
+          ))}
+          {reviews.length > showCount && (
+            <button
+              onClick={() => setShowCount((c) => c + 5)}
+              className="inline-flex h-9 items-center rounded-md border border-border px-4 text-sm hover:bg-accent"
+            >
+              Load more
+            </button>
+          )}
+        </div>
+
+        <form onSubmit={submit} className="rounded-lg border border-border bg-card p-5">
+          <h3 className="text-sm font-semibold">Write a Review</h3>
+          <div className="mt-3 flex gap-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setForm({ ...form, rating: n })}
+                className="p-0.5"
+                aria-label={`${n} star${n === 1 ? "" : "s"}`}
+              >
+                <Star
+                  className={`h-6 w-6 ${
+                    n <= form.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={form.comment}
+            onChange={(e) => setForm({ ...form, comment: e.target.value })}
+            placeholder="Share your experience (min 20 chars)…"
+            rows={4}
+            className="mt-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          />
+          <input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="Your name (e.g. Ahmad Smith)"
+            className="mt-3 h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+          />
+          {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+          <button
+            type="submit"
+            disabled={submitting}
+            className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-md bg-brand-red px-4 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
+          >
+            {submitting ? "Submitting…" : "Submit review"}
+          </button>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Reviews appear after admin approval.
+          </p>
+        </form>
+      </div>
+    </section>
+  );
+}
