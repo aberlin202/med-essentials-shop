@@ -214,7 +214,14 @@ function ProductsAdminPage() {
               value={form.imageUrl}
               onChange={(url) => setForm({ ...form, imageUrl: url })}
               folder="products"
-              label="Product image"
+              label="Main product image"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <ImagesEditor
+              images={form.images}
+              onChange={(images) => setForm({ ...form, images })}
+              label="Additional images (gallery)"
             />
           </div>
           <input
@@ -242,6 +249,9 @@ function ProductsAdminPage() {
           </div>
           <div className="sm:col-span-2">
             <YearsEditor years={form.years} onChange={(years) => setForm({ ...form, years })} />
+          </div>
+          <div className="sm:col-span-2">
+            <VariantsEditor variants={form.variants} onChange={(variants) => setForm({ ...form, variants })} />
           </div>
         </div>
         <button
@@ -276,6 +286,13 @@ function ProductsAdminPage() {
                 <div className="sm:col-span-2">
                   <ImageInput value={editForm.imageUrl} onChange={(url) => setEditForm({ ...editForm, imageUrl: url })} folder="products" label="Product image" />
                 </div>
+                <div className="sm:col-span-2">
+                  <ImagesEditor
+                    images={editForm.images}
+                    onChange={(images) => setEditForm({ ...editForm, images })}
+                    label="Additional images (gallery)"
+                  />
+                </div>
                 <input value={editForm.blurb} onChange={(e) => setEditForm({ ...editForm, blurb: e.target.value })} className="h-10 rounded-md border border-border bg-background px-3 text-sm sm:col-span-2" placeholder="Blurb" />
                 <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} rows={3} className="rounded-md border border-border bg-background px-3 py-2 text-sm sm:col-span-2" placeholder="Description" />
                 <div className="sm:col-span-2">
@@ -290,6 +307,9 @@ function ProductsAdminPage() {
                 </div>
                 <div className="sm:col-span-2">
                   <YearsEditor years={editForm.years} onChange={(years) => setEditForm({ ...editForm, years })} />
+                </div>
+                <div className="sm:col-span-2">
+                  <VariantsEditor variants={editForm.variants} onChange={(variants) => setEditForm({ ...editForm, variants })} />
                 </div>
                 <div className="flex gap-2 sm:col-span-2">
                   <button onClick={saveEdit} className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
