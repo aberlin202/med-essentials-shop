@@ -24,12 +24,8 @@ export function Navbar() {
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link to="/" className="flex min-w-0 items-center gap-2 text-base font-semibold tracking-tight">
-          {site.logoUrl ? (
+          {site.logoUrl && (
             <img src={site.logoUrl} alt="MedClub Store" className="h-7 w-7 rounded-md object-cover" />
-          ) : (
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-primary text-primary-foreground">
-              <span className="text-sm font-bold">+</span>
-            </span>
           )}
           <span className="truncate">MedClub Store</span>
         </Link>

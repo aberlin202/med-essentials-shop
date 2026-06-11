@@ -6,7 +6,7 @@ import { Pencil, Plus, Trash2, Check, X } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ImageInput } from "@/components/admin/ImageInput";
-import { useStore, type CategoryDoc, type StoreProduct, type ProductSize, YEAR_OPTIONS } from "@/context/StoreContext";
+import { useStore, type CategoryDoc, type StoreProduct, type ProductSize, type ProductVariant, YEAR_OPTIONS } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/price";
 
 export const Route = createFileRoute("/admin/products")({
@@ -23,9 +23,11 @@ type ProductForm = {
   description: string;
   badge: string;
   imageUrl: string;
+  images: string[];
   features: string[];
   sizes: ProductSize[];
   years: string[];
+  variants: ProductVariant[];
 };
 
 const empty = (firstCat: string): ProductForm => ({
@@ -37,9 +39,11 @@ const empty = (firstCat: string): ProductForm => ({
   description: "",
   badge: "",
   imageUrl: "",
+  images: [],
   features: [],
   sizes: [],
   years: [],
+  variants: [],
 });
 
 function ProductsAdminPage() {
@@ -68,11 +72,21 @@ function ProductsAdminPage() {
         description: form.description.trim(),
         badge: form.badge.trim() || null,
         imageUrl: form.imageUrl.trim() || null,
+        images: form.images.filter((u) => u.trim()),
         features: form.features.map((f) => f.trim()).filter(Boolean),
         sizes: form.sizes
           .map((s) => ({ label: s.label.trim(), stock: Number(s.stock) || 0, priceDelta: Number(s.priceDelta) || 0 }))
           .filter((s) => s.label),
         years: form.years,
+        variants: form.variants
+          .map((v) => ({
+            name: v.name.trim(),
+            hex: v.hex || "#000000",
+            price: v.price != null && !Number.isNaN(Number(v.price)) ? Number(v.price) : undefined,
+            displayName: v.displayName?.trim() || undefined,
+            images: (v.images ?? []).filter((u) => u.trim()),
+          }))
+          .filter((v) => v.name),
       });
       setForm(empty(categoryDocs[0]?.name ?? ""));
       toast.success("Product added");
@@ -104,9 +118,11 @@ function ProductsAdminPage() {
       description: p.description ?? "",
       badge: p.badge ?? "",
       imageUrl: p.imageUrl ?? "",
+      images: p.images ?? [],
       features: p.features ?? [],
       sizes: p.sizes ?? [],
       years: p.years ?? [],
+      variants: p.variants ?? [],
     });
   }
 
@@ -122,11 +138,21 @@ function ProductsAdminPage() {
         description: editForm.description.trim(),
         badge: editForm.badge.trim() || null,
         imageUrl: editForm.imageUrl.trim() || null,
+        images: editForm.images.filter((u) => u.trim()),
         features: editForm.features.map((f) => f.trim()).filter(Boolean),
         sizes: editForm.sizes
           .map((s) => ({ label: s.label.trim(), stock: Number(s.stock) || 0, priceDelta: Number(s.priceDelta) || 0 }))
           .filter((s) => s.label),
         years: editForm.years,
+        variants: editForm.variants
+          .map((v) => ({
+            name: v.name.trim(),
+            hex: v.hex || "#000000",
+            price: v.price != null && !Number.isNaN(Number(v.price)) ? Number(v.price) : undefined,
+            displayName: v.displayName?.trim() || undefined,
+            images: (v.images ?? []).filter((u) => u.trim()),
+          }))
+          .filter((v) => v.name),
       });
       setEditingId(null);
       setEditForm(null);
@@ -188,7 +214,14 @@ function ProductsAdminPage() {
               value={form.imageUrl}
               onChange={(url) => setForm({ ...form, imageUrl: url })}
               folder="products"
-              label="Product image"
+              label="Main product image"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <ImagesEditor
+              images={form.images}
+              onChange={(images) => setForm({ ...form, images })}
+              label="Additional images (gallery)"
             />
           </div>
           <input
@@ -216,6 +249,9 @@ function ProductsAdminPage() {
           </div>
           <div className="sm:col-span-2">
             <YearsEditor years={form.years} onChange={(years) => setForm({ ...form, years })} />
+          </div>
+          <div className="sm:col-span-2">
+            <VariantsEditor variants={form.variants} onChange={(variants) => setForm({ ...form, variants })} />
           </div>
         </div>
         <button
@@ -250,6 +286,13 @@ function ProductsAdminPage() {
                 <div className="sm:col-span-2">
                   <ImageInput value={editForm.imageUrl} onChange={(url) => setEditForm({ ...editForm, imageUrl: url })} folder="products" label="Product image" />
                 </div>
+                <div className="sm:col-span-2">
+                  <ImagesEditor
+                    images={editForm.images}
+                    onChange={(images) => setEditForm({ ...editForm, images })}
+                    label="Additional images (gallery)"
+                  />
+                </div>
                 <input value={editForm.blurb} onChange={(e) => setEditForm({ ...editForm, blurb: e.target.value })} className="h-10 rounded-md border border-border bg-background px-3 text-sm sm:col-span-2" placeholder="Blurb" />
                 <textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} rows={3} className="rounded-md border border-border bg-background px-3 py-2 text-sm sm:col-span-2" placeholder="Description" />
                 <div className="sm:col-span-2">
@@ -264,6 +307,9 @@ function ProductsAdminPage() {
                 </div>
                 <div className="sm:col-span-2">
                   <YearsEditor years={editForm.years} onChange={(years) => setEditForm({ ...editForm, years })} />
+                </div>
+                <div className="sm:col-span-2">
+                  <VariantsEditor variants={editForm.variants} onChange={(variants) => setEditForm({ ...editForm, variants })} />
                 </div>
                 <div className="flex gap-2 sm:col-span-2">
                   <button onClick={saveEdit} className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
@@ -436,6 +482,130 @@ function YearsEditor({ years, onChange }: { years: string[]; onChange: (next: st
             </button>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function ImagesEditor({
+  images,
+  onChange,
+  label,
+}: {
+  images: string[];
+  onChange: (next: string[]) => void;
+  label: string;
+}) {
+  const update = (i: number, v: string) => onChange(images.map((u, idx) => (idx === i ? v : u)));
+  const remove = (i: number) => onChange(images.filter((_, idx) => idx !== i));
+  const add = (url: string) => onChange([...images, url]);
+  return (
+    <div>
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mt-2 space-y-2">
+        {images.map((u, i) => (
+          <div key={i} className="flex items-start gap-2">
+            <div className="flex-1">
+              <ImageInput value={u} onChange={(v) => update(i, v)} folder="products" label={`Image ${i + 1}`} />
+            </div>
+            <button
+              type="button"
+              onClick={() => remove(i)}
+              className="mt-6 grid h-9 w-9 place-items-center rounded-md border border-border text-destructive hover:bg-accent"
+              aria-label="Remove image"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => add("")}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border px-3 text-xs hover:bg-accent"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add image
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function VariantsEditor({
+  variants,
+  onChange,
+}: {
+  variants: ProductVariant[];
+  onChange: (next: ProductVariant[]) => void;
+}) {
+  const update = (i: number, patch: Partial<ProductVariant>) =>
+    onChange(variants.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
+  const remove = (i: number) => onChange(variants.filter((_, idx) => idx !== i));
+  const add = () => onChange([...variants, { name: "", hex: "#a50908", images: [] }]);
+  return (
+    <div>
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        Color variants (first added = default)
+      </div>
+      <div className="mt-2 space-y-3">
+        {variants.map((v, i) => (
+          <div key={i} className="rounded-md border border-border bg-background/40 p-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={v.hex || "#000000"}
+                onChange={(e) => update(i, { hex: e.target.value })}
+                className="h-9 w-12 cursor-pointer rounded border border-border bg-transparent"
+                aria-label="Color swatch"
+              />
+              <input
+                value={v.name}
+                onChange={(e) => update(i, { name: e.target.value })}
+                placeholder="Color name (e.g. Midnight Blue)"
+                className="h-9 flex-1 rounded-md border border-border bg-background px-3 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                className="grid h-9 w-9 place-items-center rounded-md border border-border text-destructive hover:bg-accent"
+                aria-label="Remove variant"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <input
+                value={v.displayName ?? ""}
+                onChange={(e) => update(i, { displayName: e.target.value })}
+                placeholder="Display name (optional)"
+                className="h-9 rounded-md border border-border bg-background px-3 text-sm"
+              />
+              <input
+                type="number"
+                step="0.001"
+                value={v.price ?? ""}
+                onChange={(e) =>
+                  update(i, { price: e.target.value === "" ? undefined : Number(e.target.value) })
+                }
+                placeholder="Price (JOD) — blank uses base"
+                className="h-9 rounded-md border border-border bg-background px-3 text-sm"
+              />
+            </div>
+            <div className="mt-3">
+              <ImagesEditor
+                images={v.images ?? []}
+                onChange={(images) => update(i, { images })}
+                label="Variant photos"
+              />
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={add}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border px-3 text-xs hover:bg-accent"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add color variant
+        </button>
       </div>
     </div>
   );
