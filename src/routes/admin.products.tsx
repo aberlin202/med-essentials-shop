@@ -6,7 +6,7 @@ import { Pencil, Plus, Trash2, Check, X } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ImageInput } from "@/components/admin/ImageInput";
-import { useStore, type CategoryDoc, type StoreProduct, type ProductSize, YEAR_OPTIONS } from "@/context/StoreContext";
+import { useStore, type CategoryDoc, type StoreProduct, type ProductSize, type ProductVariant, YEAR_OPTIONS } from "@/context/StoreContext";
 import { formatPrice } from "@/lib/price";
 
 export const Route = createFileRoute("/admin/products")({
@@ -23,9 +23,11 @@ type ProductForm = {
   description: string;
   badge: string;
   imageUrl: string;
+  images: string[];
   features: string[];
   sizes: ProductSize[];
   years: string[];
+  variants: ProductVariant[];
 };
 
 const empty = (firstCat: string): ProductForm => ({
@@ -37,9 +39,11 @@ const empty = (firstCat: string): ProductForm => ({
   description: "",
   badge: "",
   imageUrl: "",
+  images: [],
   features: [],
   sizes: [],
   years: [],
+  variants: [],
 });
 
 function ProductsAdminPage() {
@@ -68,11 +72,21 @@ function ProductsAdminPage() {
         description: form.description.trim(),
         badge: form.badge.trim() || null,
         imageUrl: form.imageUrl.trim() || null,
+        images: form.images.filter((u) => u.trim()),
         features: form.features.map((f) => f.trim()).filter(Boolean),
         sizes: form.sizes
           .map((s) => ({ label: s.label.trim(), stock: Number(s.stock) || 0, priceDelta: Number(s.priceDelta) || 0 }))
           .filter((s) => s.label),
         years: form.years,
+        variants: form.variants
+          .map((v) => ({
+            name: v.name.trim(),
+            hex: v.hex || "#000000",
+            price: v.price != null && !Number.isNaN(Number(v.price)) ? Number(v.price) : undefined,
+            displayName: v.displayName?.trim() || undefined,
+            images: (v.images ?? []).filter((u) => u.trim()),
+          }))
+          .filter((v) => v.name),
       });
       setForm(empty(categoryDocs[0]?.name ?? ""));
       toast.success("Product added");
@@ -104,9 +118,11 @@ function ProductsAdminPage() {
       description: p.description ?? "",
       badge: p.badge ?? "",
       imageUrl: p.imageUrl ?? "",
+      images: p.images ?? [],
       features: p.features ?? [],
       sizes: p.sizes ?? [],
       years: p.years ?? [],
+      variants: p.variants ?? [],
     });
   }
 
@@ -122,11 +138,21 @@ function ProductsAdminPage() {
         description: editForm.description.trim(),
         badge: editForm.badge.trim() || null,
         imageUrl: editForm.imageUrl.trim() || null,
+        images: editForm.images.filter((u) => u.trim()),
         features: editForm.features.map((f) => f.trim()).filter(Boolean),
         sizes: editForm.sizes
           .map((s) => ({ label: s.label.trim(), stock: Number(s.stock) || 0, priceDelta: Number(s.priceDelta) || 0 }))
           .filter((s) => s.label),
         years: editForm.years,
+        variants: editForm.variants
+          .map((v) => ({
+            name: v.name.trim(),
+            hex: v.hex || "#000000",
+            price: v.price != null && !Number.isNaN(Number(v.price)) ? Number(v.price) : undefined,
+            displayName: v.displayName?.trim() || undefined,
+            images: (v.images ?? []).filter((u) => u.trim()),
+          }))
+          .filter((v) => v.name),
       });
       setEditingId(null);
       setEditForm(null);
