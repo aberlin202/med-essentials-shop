@@ -133,7 +133,7 @@ const DEFAULT_ABOUT: AboutContent = {
 const USE_REMOTE_HOME_CONTENT = false;
 
 const DEFAULT_HOME: HomeContent = {
-  heroHeadline: `welcome to <span class="text-[#007be0]">MedClub</span>`,
+  heroHeadline: `<span class="text-[#A80B29]">Medical Club Store</span>`,
   heroSubheadline:
     "Stethoscopes, anatomy atlases, white coats and more — at student-friendly prices, shipped from campus.",
   heroImageUrl: "",
